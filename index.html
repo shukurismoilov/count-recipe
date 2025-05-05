@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Счётчик препаратов</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .selected-item {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+    }
+    .selected-item button {
+      margin-left: 5px;
+      padding: 3px 6px;
+      font-size: 16px;
+    }
+    #results {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Счётчик препаратов</h1>
+
+<input type="text" id="searchInput" placeholder="Поиск препарата..." oninput="updateDropdown()">
+<div id="dropdown" style="border: 1px solid #ccc; max-height: 200px; overflow-y: auto;"></div>
+
+<h2>Выбранные препараты</h2>
+<div id="selectedList"></div>
+
+<button onclick="showResults()">Показать результаты</button>
+
+<div id="results"></div>
+
+<script>
+const drugs = [
+  "Алмавикс", "Аналгон-Дуал", "Батферон раствор", "Батферон таблетки",
+  "Бетропил", "Бюлин", "Велкацин 500", "Велкацин 100",
+  "Дикортан", "Дуобрейн капсула", "Дуобрейн ампула", "Дифекс суспензия",
+  "Дифекс 120 мг", "Дифекс 180 мг", "Диферол", "Домепраз", "Дуомаг",
+  "Иммужен", "Каликорд 850 мг форте", "Кардиовит", "Кардияпс", "Картосерин",
+  "Кетронит", "Кларенд 250 мг", "Кларенд 500 мг", "Лебактам",
+  "Лекартин для инъекций", "Лекартин для приёма внутрь", "Л-Ледизин",
+  "Лорнотекс", "Мексиклейд 2 мл ампула", "Мексиклейд 5 мл ампула",
+  "Мексиклейд 125 мг таблетки", "Мексиклейд 10 мл ампула", "Мелори",
+  "Мефлован", "Милдаргин капсула", "Милдаргин ампула", "Милдрокард ампула",
+  "Милдрокард капсула", "Миомекс", "Мобиарт", "Нео Витес транквилизатор",
+  "Нео Витес рост", "Нео Витес аппетит", "Нео Витес иммунитет",
+  "Нео Витес спокойный сон", "Нео Витес рыбий жир", "Ноосферокт",
+  "Овугест", "Опредакс", "Орницин", "Орницин Дуо", "Паркам",
+  "Премавит Е", "Премавит", "Премавит Форте", "Простосан Форте",
+  "Ревианокс ампула", "Ревианокс таблетка", "РОЗ3 10 мг", "РОЗ3 20 мг",
+  "Тилорсин", "Три-Ван", "Триокидс бэби", "Триптан Форте",
+  "Уросан", "Цефрош", "Фитокалм", "Эсфолайт капсула", "Эсфолайт ампула",
+  "Эфлора"
+];
+
+let availableDrugs = [...drugs];
+const selectedDrugs = {};
+
+function updateDropdown() {
+  const input = document.getElementById('searchInput').value.toLowerCase();
+  const dropdown = document.getElementById('dropdown');
+  dropdown.innerHTML = '';
+
+  if (input.length === 0) {
+    dropdown.classList.add('hidden');
+    return;
+  }
+
+  const filtered = availableDrugs.filter(d => d.toLowerCase().includes(input));
+  filtered.forEach(drug => {
+    const div = document.createElement('div');
+    div.style.padding = '5px';
+    div.style.cursor = 'pointer';
+    div.innerText = drug;
+    div.onclick = () => selectDrug(drug);
+    dropdown.appendChild(div);
+  });
+
+  dropdown.classList.remove('hidden');
+}
+
+function selectDrug(drug) {
+  if (!(drug in selectedDrugs)) {
+    selectedDrugs[drug] = 1;
+    renderSelected();
+    availableDrugs = availableDrugs.filter(d => d !== drug);
+    document.getElementById('searchInput').value = '';
+    document.getElementById('dropdown').classList.add('hidden');
+  }
+}
+
+function renderSelected() {
+  const selectedList = document.getElementById('selectedList');
+  selectedList.innerHTML = '';
+
+  for (const [drug, count] of Object.entries(selectedDrugs)) {
+    const div = document.createElement('div');
+    div.className = 'selected-item';
+    div.innerHTML = `
+      ${drug}: ${count} 
+      <button onclick="increment('${drug}')">+</button>
+      <button onclick="decrement('${drug}')">-</button>
+    `;
+    selectedList.appendChild(div);
+  }
+}
+
+function increment(drug) {
+  selectedDrugs[drug]++;
+  renderSelected();
+}
+
+function decrement(drug) {
+  if (selectedDrugs[drug] > 1) {
+    selectedDrugs[drug]--;
+  } else {
+    delete selectedDrugs[drug];
+    availableDrugs.push(drug); // вернуть обратно в выпадающий список
+    availableDrugs.sort();     // отсортировать
+  }
+  renderSelected();
+}
+
+function showResults() {
+  let output = '<h2>Итоги:</h2>';
+  for (const [drug, count] of Object.entries(selectedDrugs)) {
+    output += `<div>${drug}: ${count}</div>`;
+  }
+  document.getElementById('results').innerHTML = output;
+}
+</script>
+
+</body>
+</html>
